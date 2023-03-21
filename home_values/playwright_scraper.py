@@ -7,7 +7,7 @@ from parser import parse
 
 def main():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=1000)
+        browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, slow_mo=1000)
         page = browser.new_page()
         page.goto("https://testing-www.codefellows.org")
 
