@@ -7,39 +7,50 @@ from parser import parse
 
 def main():
     with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, slow_mo=1000)
+        browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, slow_mo=100)
         page = browser.new_page()
-        page.goto("https://testing-www.codefellows.org")
+        page.goto("https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp", wait_until="domcontentloaded")
 
-        # click the Course Calendar link
-        page.get_by_text("Course Calendar").click()
+        # Find the input field using its selector (e.g., using an ID, class, or other attribute)
+        input_field = page.locator("input[name='FormattedLocation']")  # Replace #input-field with the actual selector
+        input_field.fill("1%%% Pioneer St")
 
-        page.click("//label[text()='400: Advanced']")
+        cell = page.get_by_role("cell",
+                                name="Submit Reset Example: 110 E Main.....or 1% E Main (must include street direction or use wildcard option) Wildcard searches are available using \"%\" or only a portion of the block # and a portion of the street name")
+        submit_button = cell.get_by_role("button", name="Submit")
+        submit_button.click()
 
-        # tracks are selected by default
-        # so let's deselect all but the desired one
+        # Find the fourth table and all the <a> elements inside it
+        links_in_fourth_table = page.locator("table:nth-child(4) a")
 
-        courses = {
-            "java": "Code 401: Java",
-            "javascript": "Code 401: JavaScript",
-            ".net": "Code 401: ASP.NET",
-            "python": "Code 401: Python",
-            "cybersecurity": "Ops 401: Cybersecurity",
-        }
+        # Get the elements
+        link_elements = links_in_fourth_table.element_handles()
 
-        course_key = "python"
-        for course in courses:
-            if course != course_key:
-                page.click(f"//label[text() = '{courses[course]}']")
+        for i in range(len(link_elements)):
+            # Find the fourth table and all the <a> elements inside it
+            links_in_fourth_table = page.locator("table:nth-child(4) a")
 
-        markup = page.content()
+            # Get the elements
+            link_elements = links_in_fourth_table.element_handles()
 
-        results = parse(markup)
+            # Check if there are any more links to click
+            if i >= len(link_elements):
+                break
 
-        print(results)
+            link = link_elements[i]
+            page.on("dialog", lambda dialog: dialog.dismiss())
+            link.click()
+            page.wait_for_load_state("load")
+
+            # Perform any actions or extract information from the new page
+            print("it worked")
+
+            # Go back to the previous page
+            page.go_back(wait_until="load")
 
         browser.close()
 
 
 if __name__ == "__main__":
     main()
+
