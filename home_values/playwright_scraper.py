@@ -1,13 +1,11 @@
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright  # 'pip install pytest-playwright' and then 'playwright install chromium'
 import csv
-# pip install pytest-playwright
-# playwright install chromium
 
 
 def main():
 
     # Modify the list below to create a list of street addresses you'd like to scrape. The '%' character is a wildcard.
-    addresses = ["9%% Pedalers Ln", "1%%% Pedalers Ln", "1%%% Pioneer St", "1%%% Runway Blvd", "1%%% Oso Ave", "10%% SW 16th St"]
+    addresses = ["%%%% Pedalers Ln", "1%%% Pioneer St", "1%%% Runway Blvd", "1%%% Oso Ave", "10%% SW 16th St", "181% Wheeler St", "182% Wheeler St", "183% Wheeler St"]
     address_list = []
 
     # Open a new CSV file for writing
@@ -65,7 +63,7 @@ def main():
                         # Collect square footage
                         try:
                             sq_feet = int(page.locator("table:nth-child(13) tr:nth-child(1) td:nth-child(6) p").inner_text(timeout=2000).replace(',', ''))
-                            print("   Square feet: ", sq_feet)
+                            print("   Square Feet: ", sq_feet)
                         except Exception as e:
                             print(f"   Error encountered while trying to collect square footage: {e}")
                             sq_feet = None
