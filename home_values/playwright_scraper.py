@@ -1,16 +1,14 @@
 from playwright.sync_api import sync_playwright
-from datetime import datetime
 import csv
-import pandas as pd
-from parser import parse
-
 # pip install pytest-playwright
 # playwright install chromium
 
 
 def main():
-    address_list = []
+
+    # Modify the list below to create a list of street addresses you'd like to scrape. The '%' character is a wildcard.
     addresses = ["9%% Pedalers Ln", "1%%% Pedalers Ln", "1%%% Pioneer St", "1%%% Runway Blvd", "1%%% Oso Ave", "10%% SW 16th St"]
+    address_list = []
 
     # Open a new CSV file for writing
     with open('output.csv', 'w', newline='') as csvfile:
@@ -18,57 +16,58 @@ def main():
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
+        # Iterates through the address list
         for address_range in addresses:
+
+            # Starts the playwright script and launches a Chromium window to follow along
             with sync_playwright() as p:
                 browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False)
                 page = browser.new_page()
                 page.goto("https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp", wait_until="domcontentloaded")
 
-                # Find the input field using its selector (e.g., using an ID, class, or other attribute)
-                input_field = page.locator("input[name='FormattedLocation']")  # Replace #input-field with the actual selector
+                # Finds the Physical Address section and adds the address range
+                input_field = page.locator("input[name='FormattedLocation']")
                 input_field.fill(address_range)
 
-                cell = page.get_by_role("cell",
-                                        name="Submit Reset Example: 110 E Main.....or 1% E Main (must include street direction or use wildcard option) Wildcard searches are available using \"%\" or only a portion of the block # and a portion of the street name")
+                # Clicks the Submit button
+                cell = page.get_by_role("cell", name="Submit Reset Example: 110 E Main.....or 1% E Main (must include street direction or use wildcard option) Wildcard searches are available using \"%\" or only a portion of the block # and a portion of the street name")
                 submit_button = cell.get_by_role("button", name="Submit")
                 submit_button.click()
 
                 # Find the fourth table and all the <a> elements inside it
                 links_in_fourth_table = page.locator("table:nth-child(4) a")
-
-                # Get the elements
                 link_elements = links_in_fourth_table.element_handles()
 
                 for i in range(len(link_elements)):
+
                     # Find the fourth table and all the <a> elements inside it
                     links_in_fourth_table = page.locator("table:nth-child(4) a")
-
-                    # Get the elements
                     link_elements = links_in_fourth_table.element_handles()
 
                     # Check if there are any more links to click
                     if i >= len(link_elements):
                         break
 
+                    # Clicks on each individual address link
                     link = link_elements[i]
                     page.on("dialog", lambda dialog: dialog.dismiss())
                     link.click()
                     page.wait_for_load_state("load")
 
-                    # Perform any actions or extract information from the new page
+                    # Collects the full street address and confirms it hasn't been previously searched
                     address_raw = page.locator("table:nth-child(4) tr:nth-child(1) td:nth-child(5) p").inner_text()
                     address_parts = address_raw.split(",")
                     address = address_parts[0].strip()
                     if address not in address_list:
                         address_list.append(address)
-                        print(address)
+                        print("Address: ", address)
 
                         # Collect square footage
                         try:
                             sq_feet = int(page.locator("table:nth-child(13) tr:nth-child(1) td:nth-child(6) p").inner_text(timeout=2000).replace(',', ''))
-                            print(sq_feet)
+                            print("   Square feet: ", sq_feet)
                         except Exception as e:
-                            print(f"Error encountered while trying to collect square footage: {e}")
+                            print(f"   Error encountered while trying to collect square footage: {e}")
                             sq_feet = None
 
                         # Collect annual market values
@@ -82,7 +81,7 @@ def main():
                                 market_values[year] = market_value_clean
                             else:
                                 break
-                        print(market_values)
+                        print("   Market Values: ", market_values)
 
                         # Collect sale prices
                         num_rows2 = len(page.locator("table:nth-child(10) tr").element_handles())
@@ -96,8 +95,8 @@ def main():
                                 if sales_price_clean > 150000 and date_clean not in sales_prices:
                                     sales_prices[date_clean] = sales_price_clean
                             except Exception as e:
-                                print(f"Error encountered while trying to collect sales prices: {e}")
-                        print(sales_prices)
+                                print(f"   Error encountered while trying to collect sales prices: {e}")
+                        print("   Sales Prices: ", sales_prices)
 
                         # Write to CSV file
                         writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices})
@@ -107,7 +106,8 @@ def main():
 
                 browser.close()
 
+        print("Successfully collected all address data!")
+
 
 if __name__ == "__main__":
     main()
-
