@@ -1,5 +1,7 @@
 from playwright.sync_api import sync_playwright  # 'pip install pytest-playwright' and then 'playwright install chromium'
+from playwright.sync_api import Playwright, Page
 import csv
+import re
 
 
 def main():
@@ -10,7 +12,7 @@ def main():
 
     # Open a new CSV file for writing
     with open('output.csv', 'w', newline='') as csvfile:
-        fieldnames = ['address', 'square_feet', 'market_values', 'sales_prices']
+        fieldnames = ['address', 'square_feet', 'market_values', 'sales_prices', 'year_built', 'bedrooms', 'bathrooms']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -19,7 +21,7 @@ def main():
 
             # Starts the playwright script and launches a Chromium window to follow along
             with sync_playwright() as p:
-                browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False)
+                browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, timeout=5000)
                 page = browser.new_page()
                 page.goto("https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp", wait_until="domcontentloaded")
 
@@ -60,14 +62,6 @@ def main():
                         address_list.append(address)
                         print("Address: ", address)
 
-                        # Collect square footage
-                        try:
-                            sq_feet = int(page.locator("table:nth-child(13) tr:nth-child(1) td:nth-child(6) p").inner_text(timeout=2000).replace(',', ''))
-                            print("   Square Feet: ", sq_feet)
-                        except Exception as e:
-                            print(f"   Error encountered while trying to collect square footage: {e}")
-                            sq_feet = None
-
                         # Collect annual market values
                         num_rows1 = len(page.locator("table:nth-child(7) tr").element_handles())
                         market_values = {}
@@ -96,8 +90,74 @@ def main():
                                 print(f"   Error encountered while trying to collect sales prices: {e}")
                         print("   Sales Prices: ", sales_prices)
 
+                        try:
+                            table = page.locator('table:nth-child(13)')
+                            inner_html = table.inner_html()
+                            num_td_elements = inner_html.count('<td')
+                            if num_td_elements > 1:
+                                more_detail_link = page.locator("table:nth-child(13) a")
+                                more_detail_link.click()
+                                page.wait_for_load_state("load")
+
+                                # Collect square footage
+                                try:
+                                    sq_feet = int(
+                                        page.locator("table:nth-child(4) tr:nth-child(1) td:nth-child(1) table:nth-child(1) tr:nth-child(5) td:nth-child(2) font").inner_text(
+                                            timeout=2000).replace(',', ''))
+                                    print("   Square Feet: ", sq_feet)
+                                except Exception as e:
+                                    print(f"   Error encountered while trying to collect square footage: {e}")
+                                    sq_feet = None
+
+                                # Collect year built
+                                try:
+                                    year_built = int(
+                                        page.locator(
+                                            "table:nth-child(4) tr:nth-child(1) td:nth-child(1) table:nth-child(1) tr:nth-child(6) td:nth-child(2) font").inner_text(
+                                            timeout=2000).replace(',', ''))
+                                    print("   Year Built: ", year_built)
+                                except Exception as e:
+                                    print(f"   Error encountered while trying to collect year built: {e}")
+                                    year_built = None
+
+                                # Collect number of bedrooms
+                                try:
+                                    bedrooms_text = page.locator("table:nth-child(4) tr:nth-child(1) td:nth-child(1) table:nth-child(1) tr:nth-child(20) td:nth-child(2) font").inner_text(timeout=2000).replace(',', '')
+                                    bedrooms_match = re.search(r'\(\s*(\d+)\s*\).*?(\d+)', bedrooms_text)
+                                    if bedrooms_match:
+                                        bedrooms = int(bedrooms_match.group(2))
+                                        print(f"   Bedrooms: {bedrooms}")
+                                    else:
+                                        bedrooms = None
+                                        print(f"   Bedrooms: Unknown")
+                                except Exception as e:
+                                    print(f"   Error encountered while trying to collect number of bedrooms: {e}")
+                                    bedrooms = None
+
+                                # Collect number of bathrooms
+                                try:
+                                    bathrooms_text = page.locator("table:nth-child(4) tr:nth-child(1) td:nth-child(1) table:nth-child(1) tr:nth-child(21) td:nth-child(2) font").inner_text(timeout=2000).replace(',', '')
+                                    bathrooms = re.findall(r'\((\d+)\)', bathrooms_text)
+                                    full_bathrooms = int(bathrooms[0]) + int(bathrooms[1])
+                                    half_bathrooms = int(bathrooms[2]) / 2
+                                    bathrooms = full_bathrooms + half_bathrooms
+                                    print(f"   Bathrooms: {bathrooms}")
+                                except Exception as e:
+                                    print(f"   Error encountered while trying to collect number of bathrooms: {e}")
+                                    bathrooms = None
+
+                                # Go back to previous page
+                                page.go_back(wait_until="load")
+
+                            else:
+                                pass
+                        except Exception as e:
+                                print(f"   Error encountered while trying to collect more details: {e}")
+
+
                         # Write to CSV file
-                        writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices})
+                        writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices, 'year_built': year_built, 'bedrooms': bedrooms, 'bathrooms': bathrooms})
+                        sq_feet = bedrooms = bathrooms = full_bathrooms = half_bathrooms = None
 
                     # Go back to the previous page
                     page.go_back(wait_until="load")
