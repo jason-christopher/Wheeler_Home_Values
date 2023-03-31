@@ -12,7 +12,7 @@ def main():
 
     # Open a new CSV file for writing
     with open('output.csv', 'w', newline='') as csvfile:
-        fieldnames = ['address', 'square_feet', 'market_values', 'sales_prices', 'year_built', 'bedrooms', 'bathrooms']
+        fieldnames = ['address', 'square_feet', 'market_values', 'sales_prices', 'year_built', 'bedrooms', 'bathrooms', 'garage_sqft', 'garage_apt_sqft', 'porch_sqft', 'unfin_attic_sqft']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -146,6 +146,40 @@ def main():
                                     print(f"   Error encountered while trying to collect number of bathrooms: {e}")
                                     bathrooms = None
 
+                                # Collect garage, garage apartment, unfinished attic, and porch square footage
+                                garage_sqft = 0
+                                porch_sqft = 0
+                                garage_apt_sqft = 0
+                                ua_sqft = 0
+                                try:
+                                    table = page.locator('table:nth-child(5)')
+                                    inner_html = table.inner_html()
+                                    num_tr_elements = inner_html.count('<tr')
+                                    for tr in range(1, num_tr_elements - 1):
+                                        td_text = page.locator(f"table:nth-child(5) tr:nth-child({tr}) td:nth-child(2) p").inner_text(timeout=2000)
+                                        if "GarApart" in td_text:
+                                            garage_apt_sqft_text = page.locator(f"table:nth-child(5) tr:nth-child({tr}) td:nth-child(4) p").inner_text(timeout=2000)
+                                            garage_apt_sqft += int(garage_apt_sqft_text)
+                                        if "Gar" in td_text:
+                                            garage_sqft_text = page.locator(f"table:nth-child(5) tr:nth-child({tr}) td:nth-child(4) p").inner_text(timeout=2000)
+                                            garage_sqft += int(garage_sqft_text)
+                                        if "Por" in td_text:
+                                            porch_sqft_text = page.locator(f"table:nth-child(5) tr:nth-child({tr}) td:nth-child(4) p").inner_text(timeout=2000)
+                                            porch_sqft += int(porch_sqft_text)
+                                        if "UA" in td_text:
+                                            ua_sqft_text = page.locator(f"table:nth-child(5) tr:nth-child({tr}) td:nth-child(4) p").inner_text(timeout=2000)
+                                            ua_sqft += int(ua_sqft_text)
+                                    print(f"   Garage Apt Sq Footage: {garage_apt_sqft}")
+                                    print(f"   Garage Sq Footage: {garage_sqft}")
+                                    print(f"   Porch Sq Footage: {porch_sqft}")
+                                    print(f"   Unfinished Attic Sq Footage: {ua_sqft}")
+                                except Exception as e:
+                                    print(f"   Error encountered while trying to collect garage and porch square footage: {e}")
+                                    garage_sqft = 0
+                                    porch_sqft = 0
+                                    garage_apt_sqft = 0
+                                    ua_sqft = 0
+
                                 # Go back to previous page
                                 page.go_back(wait_until="load")
 
@@ -156,7 +190,7 @@ def main():
 
 
                         # Write to CSV file
-                        writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices, 'year_built': year_built, 'bedrooms': bedrooms, 'bathrooms': bathrooms})
+                        writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices, 'year_built': year_built, 'bedrooms': bedrooms, 'bathrooms': bathrooms, 'garage_sqft': garage_sqft, 'garage_apt_sqft': garage_apt_sqft, 'porch_sqft': porch_sqft, 'unfin_attic_sqft': ua_sqft})
                         sq_feet = bedrooms = bathrooms = full_bathrooms = half_bathrooms = None
 
                     # Go back to the previous page
