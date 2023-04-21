@@ -1,12 +1,23 @@
-# Oklahoma County Property Scraper
+# Wheeler Home Values Scraper
 
-This script scrapes property information such as address, square footage, market values, and sales prices from [Oklahoma County's property records website](https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp). The data is saved to a CSV file and then analyzed using machine learning in a Jupyter Notebook within this repo.
+Author: Jason Christopher  
+Version: 2.0
 
-## Author: Jason Christopher
+This is a web scraper designed to collect home values and other relevant information from the Oklahoma County Assessor Public Access System. The data collected will be written to an output CSV file, which can be further analyzed using the provided Jupyter Notebook.
 
-## Version: 1.0
+## Prerequisites
 
-### Installation
+- Python 3.11 or later
+- Playwright
+- Jupyter Notebook
+
+**NOTE:** Ensure that you have the correct location of the Chromium executable on your system. Update the `executable_path` parameter in the line below to match your local setup:
+
+```
+browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, timeout=5000)
+```
+
+## Installation
 
 1. Clone the repo down to your local machine using the `git clone` command.
 2. `cd` into the newly created directory.
@@ -15,21 +26,27 @@ This script scrapes property information such as address, square footage, market
 4. Activate the virtual environment by running: `source .venv/bin/activate`
 5. Install all required dependencies by running: `pip install -r requirements.txt`
 
-### Run the Program
+## Run the Program
 
-1. Inside the `home_values` directory, modify ***Line 10*** of the `playwright_scraper.py` file to fill the list with a range of addresses you'd like to scrape. 
+1. Inside the `home_values` directory, modify ***Line 10*** of the `playwright_scraper.py` file to fill the list with a range of addresses you'd like to scrape.
    * Use the `%` character as a wildcard to expand your search.
-2. Run `python home_values/playwright_scraper.py`
-3. A new Chromium window should open for you to follow along and the terminal will update with the scraped data.
-4. Once all the address data has been collected, the data will be written to the `output.csv` file in the root level.
-5. A Jupyter Notebook can be accessed in the `analysis.ipynb` file in the root level to perform more machine learning analysis. 
-   * **Note:** Currently in progress and needs more work, but the basics are there!
+2. Update the `executable_path` parameter in the line below to match your local setup (if not already done):
+
+```
+browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, timeout=5000)
+```
+
+3. Run `python home_values/playwright_scraper.py`
+4. A new Chromium window should open for you to follow along and the terminal will update with the scraped data.
+5. Once all the address data has been collected, the data will be written to the `output.csv` file in the root level.
+6. A Jupyter Notebook can be accessed in the `analysis.ipynb` file in the root level to perform more machine learning analysis.
    * To run, click the double-green-arrow **Run All** button.
-   * You will receive a prompt to input a **square footage** (an integer) to predict market value and sales price based on the homes in the analysis.
+   * You can update the Python list at the bottom of the notebook to predict the market value and sales price based on the desired input values.
 
-### Resources
+## Resources
 
-* Oklahoma County Assessor Public Access System
+- [Oklahoma County Assessor Public Access System](https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp)
 
+## Support
 
-
+For any questions or concerns, please contact the author at [jchristopher2448@gmail.com](mailto:jchristopher2448@gmail.com).
