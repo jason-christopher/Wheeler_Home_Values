@@ -21,7 +21,8 @@ def main():
 
             # Starts the playwright script and launches a Chromium window to follow along
             with sync_playwright() as p:
-                browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, timeout=5000)
+                # browser = p.chromium.launch(executable_path="/Users/kaylachristopher/Library/Caches/ms-playwright/chromium-1041/chrome-mac/Chromium.app/Contents/MacOS/Chromium", headless=False, timeout=5000)
+                browser = p.chromium.launch(headless=False, timeout=5000)
                 page = browser.new_page()
                 page.goto("https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp", wait_until="domcontentloaded")
 
