@@ -7,7 +7,7 @@ import re
 def main():
 
     # Modify the list below to create a list of street addresses you'd like to scrape. The '%' character is a wildcard.
-    addresses = ["%%%% Pedalers Ln", "1%%% Pioneer St", "1%%% Runway Blvd", "1%%% Oso Ave", "10%% SW 16th St", "181% Wheeler St", "182% Wheeler St", "183% Wheeler St"]
+    addresses = ["%%%% Pedalers Ln", "1%%% Pioneer St", "1%%% Runway Blvd", "1%%% Oso Ave", "10%% SW 16th St", "181% Wheeler St", "182% Wheeler St", "183% Wheeler St", "%%%% Hangar Dr"]
     address_list = []
 
     # Open a new CSV file for writing
@@ -192,7 +192,9 @@ def main():
 
                         # Write to CSV file
                         writer.writerow({'address': address, 'square_feet': sq_feet, 'market_values': market_values, 'sales_prices': sales_prices, 'year_built': year_built, 'bedrooms': bedrooms, 'bathrooms': bathrooms, 'garage_sqft': garage_sqft, 'garage_apt_sqft': garage_apt_sqft, 'porch_sqft': porch_sqft, 'unfin_attic_sqft': ua_sqft})
-                        sq_feet = bedrooms = bathrooms = full_bathrooms = half_bathrooms = None
+
+                        # Reset all values
+                        address = sq_feet = market_values = sales_prices = year_built = bedrooms = bathrooms = full_bathrooms = half_bathrooms = garage_sqft = garage_apt_sqft = porch_sqft = ua_sqft = half_bathrooms = None
 
                     # Go back to the previous page
                     page.go_back(wait_until="load")
