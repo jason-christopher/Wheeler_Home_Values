@@ -68,7 +68,7 @@ def main():
                         market_values = {}
                         for row in range(1, num_rows1 - 1):
                             try:
-                                year = int(page.locator(f"table:nth-child(7) tr:nth-child({row}) td:nth-child(1) p").inner_text())
+                                year = int(page.locator(f"table:nth-child(7) tr:nth-child({row}) td:nth-child(1) p").inner_text(timeout=2000))
                                 market_value = page.locator(f"table:nth-child(7) tr:nth-child({row}) td:nth-child(2) p").inner_text()
                                 market_value_clean = int(market_value.replace('\xa0', '').replace(',', ''))
                                 if market_value_clean > 100000:
@@ -76,7 +76,7 @@ def main():
                                 else:
                                     break
                             except Exception as e:
-                                print(f"   Error encountered while trying to collect sales prices: {e}")
+                                print(f"   Error encountered while trying to collect annual market values: {e}")
                         print("   Market Values: ", market_values)
 
                         # Collect sale prices
