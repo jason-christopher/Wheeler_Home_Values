@@ -7,7 +7,6 @@ import time
 # Designate a wait time to avoid being blocked
 wait_time = 3
 
-
 def main():
 
     # Modify the list below to create a list of street addresses you'd like to scrape. The '%' character is a wildcard.
