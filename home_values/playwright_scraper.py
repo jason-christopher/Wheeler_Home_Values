@@ -2,6 +2,10 @@ from playwright.sync_api import sync_playwright  # 'pip install pytest-playwrigh
 from playwright.sync_api import Playwright, Page
 import csv
 import re
+import time
+
+# Designate a wait time to avoid being blocked
+wait_time = 3
 
 
 def main():
@@ -25,6 +29,7 @@ def main():
                 browser = p.chromium.launch(headless=False, timeout=5000)
                 page = browser.new_page()
                 page.goto("https://docs.oklahomacounty.org/AssessorWP5/DefaultSearch.asp", wait_until="domcontentloaded")
+                time.sleep(wait_time)
 
                 # Finds the Physical Address section and adds the address range
                 input_field = page.locator("input[name='FormattedLocation']")
@@ -34,6 +39,7 @@ def main():
                 cell = page.get_by_role("cell", name="Submit Reset Example: 110 E Main.....or 1% E Main (must include street direction or use wildcard option) Wildcard searches are available using \"%\" or only a portion of the block # and a portion of the street name")
                 submit_button = cell.get_by_role("button", name="Submit")
                 submit_button.click()
+                time.sleep(wait_time)
 
                 # Find the fourth table and all the <a> elements inside it
                 links_in_fourth_table = page.locator("table:nth-child(4) a")
@@ -54,6 +60,7 @@ def main():
                     page.on("dialog", lambda dialog: dialog.dismiss())
                     link.click()
                     page.wait_for_load_state("load")
+                    time.sleep(wait_time)
 
                     # Collects the full street address and confirms it hasn't been previously searched
                     address_raw = page.locator("table:nth-child(4) tr:nth-child(1) td:nth-child(5) p").inner_text()
@@ -186,6 +193,7 @@ def main():
 
                                 # Go back to previous page
                                 page.go_back(wait_until="load")
+                                time.sleep(wait_time)
 
                             else:
                                 pass
@@ -201,6 +209,7 @@ def main():
 
                     # Go back to the previous page
                     page.go_back(wait_until="load")
+                    time.sleep(wait_time)
 
                 browser.close()
 
