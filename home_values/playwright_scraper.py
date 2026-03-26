@@ -92,7 +92,7 @@ def main():
                                 date = page.locator(f"table:nth-child(10) tr:nth-child({row}) td:nth-child(1) p").inner_text(timeout=2000)
                                 date_clean = int(date[-4:])
                                 sales_price = page.locator(f"table:nth-child(10) tr:nth-child({row}) td:nth-child(6) p").inner_text(timeout=2000)
-                                sales_price_clean = int(sales_price.replace(',', ''))
+                                sales_price_clean = int(sales_price.replace('\xa0', '').replace('$', '').replace(',', '').strip())
                                 if sales_price_clean > 150000 and date_clean not in sales_prices:
                                     sales_prices[date_clean] = sales_price_clean
                             except Exception as e:
